@@ -1,0 +1,10 @@
+node_modules
+.env
+*.log
+dist
+uploads/*
+!uploads/.gitkeep
+.DS_Store
+.claude/
+nul
+mobile-app/
