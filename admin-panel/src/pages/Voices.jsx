@@ -92,7 +92,8 @@ export default function Voices() {
       if (audioRef.current) {
         audioRef.current.pause();
       }
-      const audio = new Audio(`${SERVER_URL}/${voice.soundFile}`);
+      const audioUrl = voice.soundFile.startsWith('http') ? voice.soundFile : `${SERVER_URL}/${voice.soundFile}`;
+      const audio = new Audio(audioUrl);
       audio.onended = () => setPlayingAudio(null);
       audio.play();
       audioRef.current = audio;

@@ -92,7 +92,8 @@ export default function Prayers() {
       if (audioRef.current) {
         audioRef.current.pause();
       }
-      const audio = new Audio(`${SERVER_URL}/${prayer.soundFile}`);
+      const audioUrl = prayer.soundFile.startsWith('http') ? prayer.soundFile : `${SERVER_URL}/${prayer.soundFile}`;
+      const audio = new Audio(audioUrl);
       audio.onended = () => setPlayingAudio(null);
       audio.play();
       audioRef.current = audio;
