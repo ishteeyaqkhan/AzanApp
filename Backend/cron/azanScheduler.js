@@ -14,8 +14,9 @@ function startAzanScheduler(io) {
   cron.schedule('* * * * *', async () => {
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const today = now.toISOString().split('T')[0];
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const todayWeekday = now.getDay(); // 0=Sunday, 5=Friday, 6=Saturday
+    console.log(`[Cron] Checking at ${currentTime} on ${today} (weekday: ${todayWeekday})`);
 
     try {
       // Check legacy Prayer model
@@ -154,6 +155,8 @@ function startAzanScheduler(io) {
         ...rangeFixedEvents,
         ...rangeCustomSchedules.map(s => s.event)
       ];
+
+      console.log(`[Cron] Found: ${prayers.length} prayers, ${dailyFixedEvents.length} dailyFixed, ${dailyCustomSchedules.length} dailyCustom, ${weeklyFixedEvents.length} weeklyFixed, ${weeklyCustomSchedules.length} weeklyCustom, ${rangeFixedEvents.length} rangeFixed, ${rangeCustomSchedules.length} rangeCustom`);
 
       // Filter out inactiveDays + deduplicate by event ID
       const seenIds = new Set();
