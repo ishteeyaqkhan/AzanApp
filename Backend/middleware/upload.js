@@ -10,7 +10,7 @@ if (isCloudinaryConfigured) {
     params: {
       folder: 'azan-audio',
       resource_type: 'video', // Cloudinary treats audio as video type
-      allowed_formats: ['mp3', 'wav', 'm4a'],
+      allowed_formats: ['mp3', 'wav', 'm4a', 'webm'],
     }
   });
 } else {
@@ -33,12 +33,13 @@ const allowedMimetypes = [
   'audio/x-m4a',      // .m4a
   'audio/mp4',        // .m4a
   'audio/aac',        // .m4a
+  'audio/webm',       // .webm (browser MediaRecorder)
 ];
 
 const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
-    const allowedExtensions = /\.(mp3|wav|m4a)$/i;
+    const allowedExtensions = /\.(mp3|wav|m4a|webm)$/i;
     const extValid = allowedExtensions.test(file.originalname);
     const mimeValid = allowedMimetypes.includes(file.mimetype);
 

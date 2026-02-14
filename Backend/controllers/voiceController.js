@@ -41,6 +41,7 @@ const create = async (req, res) => {
       soundFile: req.file.path,
       isActive: isActive === 'true' || isActive === true
     });
+    req.app.get('io').emit('data:updated', { type: 'voice' });
     res.status(201).json(voice);
   } catch (error) {
     console.log("error",error)
@@ -65,6 +66,7 @@ const update = async (req, res) => {
       updateData.soundFile = req.file.path;
     }
     await voice.update(updateData);
+    req.app.get('io').emit('data:updated', { type: 'voice' });
     res.json(voice);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -86,6 +88,7 @@ const remove = async (req, res) => {
     await deleteCloudinaryFile(voice.soundFile);
 
     await voice.destroy();
+    req.app.get('io').emit('data:updated', { type: 'voice' });
     res.json({ message: 'Voice deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });

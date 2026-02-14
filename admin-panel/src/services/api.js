@@ -132,6 +132,20 @@ export const getTodayEvents = async () => {
   return response.data;
 };
 
+// Announcements
+export const broadcastAnnouncement = async (formData) => {
+  const response = await api.post('/announcements', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+};
+
+// Users
+export const getUsers = async () => {
+  const response = await api.get('/users');
+  return response.data;
+};
+
 // Stats
 export const getStats = async () => {
   const response = await api.get('/stats');

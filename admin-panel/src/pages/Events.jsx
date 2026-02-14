@@ -96,8 +96,14 @@ export default function Events() {
     return `${hour12}:${minutes} ${ampm}`;
   };
 
+  const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
   const getScheduleLabel = (event) => {
     if (event.scheduleMode === 'daily') return 'Daily';
+    if (event.scheduleMode === 'weekly') {
+      const days = (event.weekdays || []).map(d => WEEKDAY_SHORT[d]).join(', ');
+      return days ? `Weekly (${days})` : 'Weekly';
+    }
     if (event.startDate && event.endDate) {
       const start = new Date(event.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       const end = new Date(event.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -108,7 +114,14 @@ export default function Events() {
 
   const getTimeLabel = (event) => {
     if (event.timeMode === 'fixed') return formatTime(event.fixedTime);
-    return 'Custom';
+    const count = event.schedules ? event.schedules.length : 0;
+    return count > 0 ? `Custom (${count} days)` : 'Custom';
+  };
+
+  const getSkipDaysLabel = (event) => {
+    const days = event.inactiveDays || [];
+    if (days.length === 0) return '-';
+    return days.map(d => WEEKDAY_SHORT[d]).join(', ');
   };
 
   return (
@@ -168,6 +181,7 @@ export default function Events() {
                   <th className="text-left px-6 py-4 text-sm font-medium text-gray-300">Voice</th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-gray-300">Schedule</th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-gray-300">Time</th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-300">Skip Days</th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-gray-300">Status</th>
                   <th className="text-right px-6 py-4 text-sm font-medium text-gray-300">Actions</th>
                 </tr>
@@ -191,6 +205,9 @@ export default function Events() {
                     </td>
                     <td className="px-6 py-4 text-gray-300 text-sm">
                       {getTimeLabel(event)}
+                    </td>
+                    <td className="px-6 py-4 text-gray-400 text-sm">
+                      {getSkipDaysLabel(event)}
                     </td>
                     <td className="px-6 py-4">
                       <span

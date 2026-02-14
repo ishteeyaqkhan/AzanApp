@@ -1,4 +1,4 @@
-const { Voice, Event } = require('../models');
+const { Voice, Event, User } = require('../models');
 
 const getStats = async (req, res) => {
   try {
@@ -6,7 +6,8 @@ const getStats = async (req, res) => {
     const activeVoices = await Voice.count({ where: { isActive: true } });
     const totalEvents = await Event.count();
     const activeEvents = await Event.count({ where: { isActive: true } });
-    res.json({ totalVoices, activeVoices, totalEvents, activeEvents });
+    const totalUsers = await User.count();
+    res.json({ totalVoices, activeVoices, totalEvents, activeEvents, totalUsers });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

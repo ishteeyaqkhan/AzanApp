@@ -1,4 +1,5 @@
 const { Event, Voice, EventSchedule } = require('../models');
+const { sendSilentPushToAll } = require('../services/pushService');
 
 const getAll = async (req, res) => {
   try {
@@ -34,9 +35,10 @@ const getById = async (req, res) => {
 
 const getTodayList = async (req, res) => {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const todayWeekday = now.getDay(); // 0=Sunday, 5=Friday, 6=Saturday
 
-    // Find events that are active today
     const events = await Event.findAll({
       where: { isActive: true },
       include: [
@@ -47,21 +49,38 @@ const getTodayList = async (req, res) => {
 
     const todayEvents = [];
     for (const event of events) {
-      let time = null;
+      // Skip if today's weekday is in inactiveDays
+      const inactiveDays = event.inactiveDays || [];
+      if (inactiveDays.includes(todayWeekday)) continue;
+
+      let applicable = false;
 
       if (event.scheduleMode === 'daily') {
-        time = event.fixedTime;
-      } else {
-        // date_range mode - check if today falls in range
-        if (event.startDate && event.endDate && today >= event.startDate && today <= event.endDate) {
-          if (event.timeMode === 'fixed') {
-            time = event.fixedTime;
-          } else {
-            // custom mode - find schedule for today
-            const schedule = event.schedules.find(s => s.date === today);
-            time = schedule ? schedule.time : null;
-          }
+        applicable = true;
+      } else if (event.scheduleMode === 'weekly') {
+        const weekdays = event.weekdays || [];
+        if (!weekdays.includes(todayWeekday)) continue;
+        // Optional date bounds for weekly
+        if (event.startDate && event.endDate) {
+          applicable = today >= event.startDate && today <= event.endDate;
+        } else {
+          applicable = true;
         }
+      } else if (event.scheduleMode === 'date_range') {
+        if (event.startDate && event.endDate) {
+          applicable = today >= event.startDate && today <= event.endDate;
+        }
+      }
+
+      if (!applicable) continue;
+
+      // Resolve time
+      let time = null;
+      if (event.timeMode === 'custom') {
+        const schedule = event.schedules.find(s => s.date === today);
+        time = schedule ? schedule.time : event.fixedTime; // fallback to fixedTime
+      } else {
+        time = event.fixedTime;
       }
 
       if (time) {
@@ -77,6 +96,7 @@ const getTodayList = async (req, res) => {
     }
 
     todayEvents.sort((a, b) => a.time.localeCompare(b.time));
+    console.log(`todays events ------------------>`, todayEvents);
     res.json(todayEvents);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -85,28 +105,29 @@ const getTodayList = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { name, type, voiceId, scheduleMode, startDate, endDate, timeMode, fixedTime, isActive, schedules } = req.body;
+    const { name, type, voiceId, scheduleMode, startDate, endDate, timeMode, fixedTime, isActive, weekdays, inactiveDays, schedules } = req.body;
 
     const event = await Event.create({
       name,
       type,
       voiceId,
       scheduleMode,
-      startDate: scheduleMode === 'date_range' ? startDate : null,
-      endDate: scheduleMode === 'date_range' ? endDate : null,
-      timeMode: scheduleMode === 'daily' ? 'fixed' : timeMode,
-      fixedTime: (scheduleMode === 'daily' || timeMode === 'fixed') ? fixedTime : null,
+      weekdays: scheduleMode === 'weekly' ? weekdays : null,
+      inactiveDays: Array.isArray(inactiveDays) && inactiveDays.length > 0 ? inactiveDays : null,
+      startDate: (scheduleMode === 'date_range' || scheduleMode === 'weekly') ? startDate : null,
+      endDate: (scheduleMode === 'date_range' || scheduleMode === 'weekly') ? endDate : null,
+      timeMode,
+      fixedTime: fixedTime || null,
       isActive: isActive !== undefined ? isActive : true
     });
 
-    // Create custom schedules if applicable
-    if (scheduleMode === 'date_range' && timeMode === 'custom' && Array.isArray(schedules)) {
+    // Create custom schedules for any mode with custom timeMode
+    if (timeMode === 'custom' && Array.isArray(schedules)) {
       await EventSchedule.bulkCreate(
         schedules.map(s => ({ eventId: event.id, date: s.date, time: s.time }))
       );
     }
 
-    // Re-fetch with associations
     const created = await Event.findByPk(event.id, {
       include: [
         { model: Voice, as: 'voice' },
@@ -114,6 +135,9 @@ const create = async (req, res) => {
       ]
     });
 
+    req.app.get('io').emit('data:updated', { type: 'event' });
+    sendSilentPushToAll({ type: 'data_updated', entity: 'event' })
+      .catch(err => console.error('Silent push error:', err));
     res.status(201).json(created);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -127,23 +151,25 @@ const update = async (req, res) => {
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    const { name, type, voiceId, scheduleMode, startDate, endDate, timeMode, fixedTime, isActive, schedules } = req.body;
+    const { name, type, voiceId, scheduleMode, startDate, endDate, timeMode, fixedTime, isActive, weekdays, inactiveDays, schedules } = req.body;
 
     await event.update({
       name,
       type,
       voiceId,
       scheduleMode,
-      startDate: scheduleMode === 'date_range' ? startDate : null,
-      endDate: scheduleMode === 'date_range' ? endDate : null,
-      timeMode: scheduleMode === 'daily' ? 'fixed' : timeMode,
-      fixedTime: (scheduleMode === 'daily' || timeMode === 'fixed') ? fixedTime : null,
+      weekdays: scheduleMode === 'weekly' ? weekdays : null,
+      inactiveDays: Array.isArray(inactiveDays) && inactiveDays.length > 0 ? inactiveDays : null,
+      startDate: (scheduleMode === 'date_range' || scheduleMode === 'weekly') ? startDate : null,
+      endDate: (scheduleMode === 'date_range' || scheduleMode === 'weekly') ? endDate : null,
+      timeMode,
+      fixedTime: fixedTime || null,
       isActive: isActive !== undefined ? isActive : true
     });
 
     // Replace schedules
     await EventSchedule.destroy({ where: { eventId: event.id } });
-    if (scheduleMode === 'date_range' && timeMode === 'custom' && Array.isArray(schedules)) {
+    if (timeMode === 'custom' && Array.isArray(schedules)) {
       await EventSchedule.bulkCreate(
         schedules.map(s => ({ eventId: event.id, date: s.date, time: s.time }))
       );
@@ -156,6 +182,9 @@ const update = async (req, res) => {
       ]
     });
 
+    req.app.get('io').emit('data:updated', { type: 'event' });
+    sendSilentPushToAll({ type: 'data_updated', entity: 'event' })
+      .catch(err => console.error('Silent push error:', err));
     res.json(updated);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -170,6 +199,9 @@ const remove = async (req, res) => {
     }
     await EventSchedule.destroy({ where: { eventId: event.id } });
     await event.destroy();
+    req.app.get('io').emit('data:updated', { type: 'event' });
+    sendSilentPushToAll({ type: 'data_updated', entity: 'event' })
+      .catch(err => console.error('Silent push error:', err));
     res.json({ message: 'Event deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });

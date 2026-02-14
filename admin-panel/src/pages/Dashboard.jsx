@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { getStats, getTodayEvents } from '../services/api';
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({ totalVoices: 0, activeVoices: 0, totalEvents: 0, activeEvents: 0 });
+  const [stats, setStats] = useState({ totalVoices: 0, activeVoices: 0, totalEvents: 0, activeEvents: 0, totalUsers: 0 });
   const [todayEvents, setTodayEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -62,7 +62,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-purple-600/20 rounded-lg flex items-center justify-center">
@@ -115,6 +115,20 @@ export default function Dashboard() {
             <div>
               <p className="text-gray-400 text-sm">Active Events</p>
               <p className="text-2xl font-bold text-white">{stats.activeEvents}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-gray-400 text-sm">Total Users</p>
+              <p className="text-2xl font-bold text-white">{stats.totalUsers}</p>
             </div>
           </div>
         </div>

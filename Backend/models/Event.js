@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     type: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM('azan', 'other'),
       allowNull: false
     },
     voiceId: {
@@ -23,10 +23,21 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     scheduleMode: {
-      type: DataTypes.ENUM('daily', 'date_range'),
+      type: DataTypes.ENUM('daily', 'weekly', 'date_range'),
       allowNull: false,
       defaultValue: 'daily',
       field: 'schedule_mode'
+    },
+    weekdays: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: null
+    },
+    inactiveDays: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: null,
+      field: 'inactive_days'
     },
     startDate: {
       type: DataTypes.DATEONLY,

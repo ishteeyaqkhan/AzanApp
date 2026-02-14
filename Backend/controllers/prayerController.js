@@ -34,6 +34,7 @@ const getById = async (req, res) => {
 
 const getTodayList = async (req, res) => {
   try {
+    console.log("-----------------------------Callllllllll-------------------")
     const today = new Date().toISOString().split('T')[0];
 
     const prayers = await Prayer.findAll({
@@ -66,6 +67,7 @@ const create = async (req, res) => {
       isActive: isActive === 'true' || isActive === true
     });
 
+    req.app.get('io').emit('data:updated', { type: 'prayer' });
     res.status(201).json(prayer);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -94,6 +96,7 @@ const update = async (req, res) => {
     }
 
     await prayer.update(updateData);
+    req.app.get('io').emit('data:updated', { type: 'prayer' });
     res.json(prayer);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -112,6 +115,7 @@ const remove = async (req, res) => {
     await deleteCloudinaryFile(prayer.soundFile);
 
     await prayer.destroy();
+    req.app.get('io').emit('data:updated', { type: 'prayer' });
     res.json({ message: 'Prayer deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });

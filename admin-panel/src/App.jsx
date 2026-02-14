@@ -5,6 +5,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Voices from './pages/Voices';
 import Events from './pages/Events';
+import LiveAnnouncement from './pages/LiveAnnouncement';
+import Users from './pages/Users';
 
 function App() {
   return (
@@ -37,6 +39,26 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <Events />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/live"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <LiveAnnouncement />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <Users />
               </Layout>
             </PrivateRoute>
           }

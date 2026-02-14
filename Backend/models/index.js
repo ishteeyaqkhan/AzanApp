@@ -6,6 +6,8 @@ const Voice = require('./Voice')(sequelize, DataTypes);
 const Event = require('./Event')(sequelize, DataTypes);
 const EventSchedule = require('./EventSchedule')(sequelize, DataTypes);
 const Admin = require('./Admin')(sequelize, DataTypes);
+const User = require('./User')(sequelize, DataTypes);
+const DeviceToken = require('./DeviceToken')(sequelize, DataTypes);
 
 // Associations
 Voice.hasMany(Event, { foreignKey: 'voice_id', as: 'events' });
@@ -19,5 +21,7 @@ module.exports = {
   Voice,
   Event,
   EventSchedule,
-  Admin
+  Admin,
+  User,
+  DeviceToken
 };
