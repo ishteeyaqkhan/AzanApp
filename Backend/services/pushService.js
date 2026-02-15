@@ -31,6 +31,8 @@ async function sendPushToAll(title, body, data = {}, channelId = 'prayer-times')
 
   if (messages.length === 0) return;
 
+  console.log(`[Push] Sending to ${messages.length} device(s)`);
+
   const chunks = expo.chunkPushNotifications(messages);
   for (const chunk of chunks) {
     try {

@@ -40,6 +40,10 @@ startAzanScheduler(io);
 
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
+  const now = new Date();
   console.log(`Server running on port ${PORT}`);
+  console.log(`Server timezone: TZ=${process.env.TZ || 'NOT SET (UTC)'}`);
+  console.log(`Server local time: ${now.toLocaleString('en-IN', { timeZone: process.env.TZ || 'UTC' })}`);
+  console.log(`Server Date(): ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')} (this is what cron uses)`);
 });
 
