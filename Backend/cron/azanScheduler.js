@@ -13,13 +13,13 @@ function getFullAudioUrl(soundFile) {
 
 function startAzanScheduler(io) {
   const startInfo = getLocalNow();
-  console.log(`[Cron] Azan scheduler started. APP_TIMEZONE=${startInfo.timezone}, time=${startInfo.time}, date=${startInfo.date}`);
+  console.log(`[Cron] Azan scheduler started. offset=${startInfo.offsetDisplay}, time=${startInfo.time}, date=${startInfo.date}`);
   cron.schedule('* * * * *', async () => {
     const local = getLocalNow();
     const currentTime = local.time;
     const today = local.date;
     const todayWeekday = local.weekday;
-    console.log(`[Cron] Checking at ${currentTime} on ${today} (weekday: ${todayWeekday}, tz: ${local.timezone})`);
+    console.log(`[Cron] Checking at ${currentTime} on ${today} (weekday: ${todayWeekday}, ${local.offsetDisplay})`);
 
     try {
       // Check legacy Prayer model

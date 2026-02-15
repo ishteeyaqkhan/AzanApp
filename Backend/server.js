@@ -43,7 +43,7 @@ server.listen(PORT, () => {
   const { getLocalNow } = require('./utils/timezone');
   const local = getLocalNow();
   console.log(`Server running on port ${PORT}`);
-  console.log(`Server APP_TIMEZONE: ${local.timezone}`);
+  console.log(`Server offset: ${local.offsetDisplay} (UTC_OFFSET_MINUTES=${local.offsetMinutes})`);
   console.log(`Server local time: ${local.date} ${local.time} (weekday: ${local.weekday})`);
 });
 

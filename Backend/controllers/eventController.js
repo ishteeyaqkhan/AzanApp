@@ -39,7 +39,7 @@ const getTodayList = async (req, res) => {
     const local = getLocalNow();
     const today = local.date;
     const todayWeekday = local.weekday;
-    console.log(`[getTodayList] today=${today}, weekday=${todayWeekday}, time=${local.time}, tz=${local.timezone}`);
+    console.log(`[getTodayList] today=${today}, weekday=${todayWeekday}, time=${local.time}, ${local.offsetDisplay}`);
 
     const events = await Event.findAll({
       where: { isActive: true },
