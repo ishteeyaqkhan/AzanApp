@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const { Op } = require('sequelize');
 const { Prayer, Event, Voice, EventSchedule } = require('../models');
 const { sendPushToAll } = require('../services/pushService');
+const { getLocalNow } = require('../utils/timezone');
 
 function getFullAudioUrl(soundFile) {
   if (!soundFile) return null;
@@ -11,14 +12,14 @@ function getFullAudioUrl(soundFile) {
 }
 
 function startAzanScheduler(io) {
-  console.log(`[Cron] Azan scheduler started. TZ=${process.env.TZ || 'NOT SET (UTC)'}`);
-  console.log(`[Cron] Server time now: ${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2, '0')}`);
+  const startInfo = getLocalNow();
+  console.log(`[Cron] Azan scheduler started. APP_TIMEZONE=${startInfo.timezone}, time=${startInfo.time}, date=${startInfo.date}`);
   cron.schedule('* * * * *', async () => {
-    const now = new Date();
-    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const todayWeekday = now.getDay(); // 0=Sunday, 5=Friday, 6=Saturday
-    console.log(`[Cron] Checking at ${currentTime} on ${today} (weekday: ${todayWeekday})`);
+    const local = getLocalNow();
+    const currentTime = local.time;
+    const today = local.date;
+    const todayWeekday = local.weekday;
+    console.log(`[Cron] Checking at ${currentTime} on ${today} (weekday: ${todayWeekday}, tz: ${local.timezone})`);
 
     try {
       // Check legacy Prayer model

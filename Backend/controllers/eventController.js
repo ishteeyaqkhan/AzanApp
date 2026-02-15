@@ -1,5 +1,6 @@
 const { Event, Voice, EventSchedule } = require('../models');
 const { sendSilentPushToAll } = require('../services/pushService');
+const { getLocalNow } = require('../utils/timezone');
 
 const getAll = async (req, res) => {
   try {
@@ -35,14 +36,10 @@ const getById = async (req, res) => {
 
 const getTodayList = async (req, res) => {
   try {
-    const now = new Date();
-    // Use local date (respects TZ env var) instead of UTC toISOString()
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const today = `${year}-${month}-${day}`;
-    const todayWeekday = now.getDay(); // 0=Sunday, 5=Friday, 6=Saturday
-    console.log(`[getTodayList] today=${today}, weekday=${todayWeekday}, localTime=${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`);
+    const local = getLocalNow();
+    const today = local.date;
+    const todayWeekday = local.weekday;
+    console.log(`[getTodayList] today=${today}, weekday=${todayWeekday}, time=${local.time}, tz=${local.timezone}`);
 
     const events = await Event.findAll({
       where: { isActive: true },
