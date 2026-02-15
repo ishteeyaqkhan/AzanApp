@@ -6,7 +6,8 @@
  * This is a plain number that Railway cannot auto-convert.
  */
 function getLocalNow() {
-  const offsetMinutes = parseInt(process.env.UTC_OFFSET_MINUTES || '0', 10);
+  // Default 330 = IST (UTC+5:30). Override via UTC_OFFSET_MINUTES env var.
+  const offsetMinutes = parseInt(process.env.UTC_OFFSET_MINUTES || '330', 10);
   const now = new Date();
 
   // Apply offset: UTC time + offset = local time
